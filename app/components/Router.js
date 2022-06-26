@@ -2,6 +2,7 @@ import { ajax } from "../helpers/ajax.js";
 import { getById } from "../helpers/dom.js";
 import wp_api from "../helpers/wp_api.js";
 import { PostCard } from "./PostCard.js";
+import { PostSearch } from "./PostSearch.js";
 import { PostView } from "./PostView.js";
 
 export async function Router() {
@@ -29,22 +30,26 @@ export async function Router() {
         
     }else if(hash.includes('#/search')){
 
-        $post.innerHTML = '<h2>Seccion Search</h2>';
+        let query = localStorage.getItem('search');
+        if (!query) return false;
+
+        await ajax({
+            url:wp_api.SEARCH+'/'+query,
+            successCB: (searchs) => {
+                let html = '';
+                if (searchs) {
+                    searchs.forEach(search => {
+                        html += PostSearch(search);
+                    });
+                    
+                    $post.innerHTML = html;
+                }
+            }
+        });
 
     }else if(hash === '#/contacto'){
 
         $post.innerHTML = '<h2>Seccion Contacto</h2>';
-
-    }else if(hash === '#/post'){
-
-        await ajax({
-            url:wp_api.POST+'/'+localStorage.getItem('postId'),
-            successCB: (post) => {
-                console.log(post);
-                let html = PostView(post);
-                $post.innerHTML = html;
-            }
-            });
 
     }else{
 
@@ -52,10 +57,10 @@ export async function Router() {
             url:wp_api.POST+'/'+localStorage.getItem('postId'),
             successCB: (post) => {
                 console.log(post);
-                let html = PostView();
-                $post.innerHTML = html;
+                $post.innerHTML = PostView(post);
             }
-            });
+        });
+
 
     }
 
